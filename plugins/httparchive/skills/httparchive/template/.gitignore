@@ -6,6 +6,8 @@ out*/review-nsfw/
 .publish-terms
 # Notes for improving the skill (its SKILL.md, Improving the skill); not published
 skill-notes.md
+# Diff of the installed skill's local changes (SKILL.md, Research repo); not published
+skill-local.diff
 # Live run status for the user (SKILL.md, Kickoff)
 status.html
 .DS_Store
