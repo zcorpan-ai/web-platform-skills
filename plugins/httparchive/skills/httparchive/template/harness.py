@@ -17,14 +17,15 @@ MEASURE_JS = """
 """
 
 
-URL_QUERY = re.compile(r'([a-z][a-z0-9+.-]*://[^\s?#"\'<>]+)[?#][^\s"\'<>]*', re.I)
+URL_QUERY = re.compile(r'([a-z][a-z0-9+.-]*://[^\s?#;"\'<>]+)[?#;][^\s"\'<>]*', re.I)
 CC_HOST = re.compile(r'\b(google|bing|yahoo|amazon|facebook)\.(?:co\.)?(?!com\b|net\b|org\b)[a-z]{2}\b')
 ORIGIN = re.compile(r'[a-z][a-z0-9+.-]*://[^/?#\s]*', re.I)
 
 
 def scrub(s):
-    """Drop query strings and fragments from URLs (any scheme) and mask country-specific hosts:
-    live loads put tracking IDs, tokens and location hints there, and run output gets published."""
+    """Drop query strings, fragments and `;` parameters from URLs (any scheme) and mask
+    country-specific hosts: live loads put tracking IDs, tokens and location hints there, and run
+    output gets published."""
     return CC_HOST.sub(r'\1.<cc>', URL_QUERY.sub(r'\1', s)) if isinstance(s, str) else s
 
 
