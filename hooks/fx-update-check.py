@@ -132,7 +132,8 @@ def bundles_in_command():
     except ValueError:
         tokens = command.split()
     for token in tokens:
-        m = re.match(r"(?:[\w-]+=)?((?:~|/)[^\n]*?)\.app(?:/|$)", token)
+        # "$FIREFOX" names whatever the environment sets it to.
+        m = re.match(r"(?:[\w-]+=)?((?:~|/)[^\n]*?)\.app(?:/|$)", os.path.expandvars(token))
         if m:
             yield os.path.expanduser(m.group(1))
 
