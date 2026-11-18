@@ -85,7 +85,7 @@ This run was done with version <version> of the [`httparchive` skill](https://gi
 ```sh
 bq query --use_legacy_sql=false --format=csv --max_rows=1000000 < queries/hits.sql > queries/hits.csv
 python3 sample.py queries/hits.csv sample.jsonl <seed> <n> <stratum-columns...>
-python3 -m venv .venv && .venv/bin/pip install playwright pillow nudenet pyobjc-framework-Vision  # Vision for ocr_check.py on macOS; elsewhere install tesseract
+python3 -m venv .venv && .venv/bin/pip install playwright pillow nudenet pyobjc-framework-Vision  # Vision for ocr_check.py on macOS; elsewhere install tesseract. No `playwright install`: the scripts drive an installed Chrome
 .venv/bin/python compare.py "$CHROME" sample.jsonl out
 .venv/bin/python nsfw_check.py out
 .venv/bin/python analyze.py out

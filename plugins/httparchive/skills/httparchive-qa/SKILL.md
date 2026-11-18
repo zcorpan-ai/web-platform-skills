@@ -14,7 +14,7 @@ Do `httparchive`'s kickoff, with these additions.
 - Find the feature's spec, which engines ship it, how to turn it off in the candidate (a pref or flag), and its known interop failures (wpt.fyi results for its tests in the browsers under test). Each failure is a lead to check against pages.
 - Size usage cheaply before proposing a sample: use counters (read where they fire; uses that need interaction are missing from the crawl), the 10k sample tables, local Common Crawl. Group usage by the library or framework behind it, and separate pages that act through the feature from pages that only detect it or listen: bugs show up on the former.
 - Start the repo (`~/httparchive/<feature>-qa/`, or the working directory as in `httparchive`'s Research repo) from `../httparchive/template/` (version line from `../httparchive/skill_version.py`), but fill in this skill's `template/README.md` instead of its README, and extend its one-browser before/after harness to the run's setups.
-- Smoke-test every setup on a local page that uses the feature.
+- Smoke-test every setup on a local page that uses the feature, served on a free port (`harness.serve()`); a fixed port can reach another run's server.
 - Scope defaults:
   - Setups: the reference twice (noise floor), the candidate, the candidate with the feature off (separates the feature's bugs from other engine differences), and the other engines' current dev channels.
   - Pages: top-ranked pages that act through the feature first, plus some that only detect it (a candidate changes feature detection, so they take new code paths); the long tail and emulated mobile if they may use it differently.
@@ -30,7 +30,7 @@ Do `httparchive`'s kickoff, with these additions.
 - Flag console errors and warnings only the candidate logs, not just exceptions (polyfills often log failures instead of throwing), and states only the candidate has (a loading indicator still up, raw content).
 - For a polyfill or extension, read its code for where it differs from the reference by design (refetching, running in every frame, its own stylesheet, another realm) and write a test page per difference.
 - Classify each cause: the candidate, another engine, the spec (its requirement breaks pages, or two or more implementations deviate from it the same way), the automation (a driver behaving unlike a user; report it with the infrastructure), or the site (UA sniffing, geo-targeting, bot blocks, consent flows). Rule out the last two before blaming an engine.
-- Treat crashes as the most severe: a lost driver session can be a crashed content process. Reproduce in a fresh session and look for the stack in crash reports.
+- Treat crashes as the most severe: a lost driver session can be a crashed content process. Reproduce in a fresh session and look for the stack in crash reports. Detect crashes from lost sessions and new crash reports, not by matching "crash" in driver output (geckodriver's launch line names `MOZ_CRASHREPORTER`).
 - Breadth over depth: once a cause has a reduced test, the engine code at a commit, and the spec step, tag later pages with the same signature and move on to new pages. Don't prototype or suggest fixes unless asked; then prototype before suggesting.
 - Stop after two consecutive batches with no new cause, or when pages stop reaching new code paths, and record why in the README. Don't write a detailed follow-up plan; suggest a follow-up in rough shape only when there's reason to think it would find what this run missed.
 
