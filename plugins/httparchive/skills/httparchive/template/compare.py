@@ -45,20 +45,49 @@ async def sanity(before, after):
 async def main():
     rows = [json.loads(l) for l in open(args.sample)]
     async with async_playwright() as p:
-        before = await harness.launch(p, args.chrome, 'before')
-        after = await harness.launch(p, args.after_chrome or args.chrome, 'after')
-        print('before', before.version, 'after', after.version, flush=True)
-        await sanity(before, after)
+        exes = {'before': args.chrome, 'after': args.after_chrome or args.chrome}
+        browsers = {s: await harness.launch(p, exe, s) for s, exe in exes.items()}
+        print('before', browsers['before'].version, 'after', browsers['after'].version, flush=True)
+        await sanity(browsers['before'], browsers['after'])
         sem = asyncio.Semaphore(args.concurrency)
+        # A wedged or crashed browser fails every later visit: relaunch it after 3 timeouts in a row.
+        timeouts = {s: 0 for s in exes}
+        lock, retired = asyncio.Lock(), []
+
+        async def close(br):
+            try:
+                await asyncio.wait_for(br.close(), 20)
+            except Exception:
+                pass
+
+        async def relaunch(setup, old):
+            async with lock:
+                if browsers[setup] is not old:
+                    return
+                print('relaunching', setup, flush=True)
+                browsers[setup] = await harness.launch(p, exes[setup], setup)
+                timeouts[setup] = 0
+            retired.append(old)
+
+            async def close_later():
+                await asyncio.sleep(95)  # other pages' visits on it finish or time out (guarded) first
+                await close(old)
+            asyncio.get_running_loop().create_task(close_later())
 
         async def one(idx, r):
             if (r['page'], r['client']) in done:
                 return
             async with sem:
                 visits = {}
-                for tag, br, setup in (('A', before, 'before'), ('A2', before, 'before'), ('B', after, 'after')):
+                for tag, setup in (('A', 'before'), ('A2', 'before'), ('B', 'after')):
                     shot = f"{args.out_dir}/shots/{idx}-{tag}.png"
-                    visits[tag] = await harness.guarded(harness.visit(br, r['page'], r['client'], setup, shot))
+                    br = browsers[setup]
+                    rec = await harness.guarded(harness.visit(br, r['page'], r['client'], setup, shot))
+                    visits[tag] = rec
+                    hung = rec.get('error', '').startswith('visit timed out')
+                    timeouts[setup] = timeouts[setup] + 1 if hung else 0
+                    if timeouts[setup] >= 3 or (hasattr(br, 'is_connected') and not br.is_connected()):
+                        await relaunch(setup, br)
             a, a2, b = visits['A'], visits['A2'], visits['B']
             res = {'idx': idx, **r, **visits,
                    'textRatioAA2': harness.text_ratio(a, a2), 'textRatioAB': harness.text_ratio(a, b),
@@ -69,7 +98,7 @@ async def main():
             print(idx, r['stratum'], res['textRatioAB'], res['pixAB'], flush=True)
 
         await asyncio.gather(*(one(i, r) for i, r in enumerate(rows)))
-        await before.close()
-        await after.close()
+        for br in [*browsers.values(), *retired]:
+            await close(br)
 
 asyncio.run(main())

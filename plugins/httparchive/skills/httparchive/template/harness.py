@@ -112,8 +112,13 @@ async def visit(browser, url, client, setup, shot=None, wait=3000, full_page=Tru
             console.append(f'{m.type}: ' + scrub(m.text)[:300]))
     rec = {}
     try:
-        resp = await page.goto(url, wait_until='load', timeout=30000)
+        resp = await page.goto(url, wait_until='domcontentloaded', timeout=30000)
         rec['status'] = resp.status if resp else None
+        try:
+            # Heavy pages can take minutes to fire load; measure them anyway.
+            await page.wait_for_load_state('load', timeout=15000)
+        except Exception:
+            rec['loadTimeout'] = True
         await page.wait_for_timeout(wait)
         if setup == 'after' and change.AFTER_LOAD_JS:
             await page.evaluate(change.AFTER_LOAD_JS)
