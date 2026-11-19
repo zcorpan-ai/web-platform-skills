@@ -3,6 +3,7 @@
   "name": "httparchive",
   "version": "0.33.0",
   "description": "Estimate web compat impact with HTTP Archive and Common Crawl",
+  "license": "MIT",
   "author": {
     "name": "Simon Pieters"
   }

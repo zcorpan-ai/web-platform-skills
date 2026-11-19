@@ -3,6 +3,7 @@
   "name": "web-platform-skills",
   "version": "0.16.8",
   "description": "Skills for web platform spec and wpt work",
+  "license": "MIT",
   "author": {
     "name": "Simon Pieters"
   }
