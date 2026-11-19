@@ -97,3 +97,9 @@ python3 extrapolate.py out/review.csv sample.jsonl > out/summary.md
 <!-- Browser, Playwright, and Pillow versions; anything that changed during the run (run.log);
      that live pages change, so a rerun won't match exactly; that screenshots (out*/shots/)
      aren't committed and compare.py regenerates them. -->
+
+## License
+
+MIT, see [LICENSE](LICENSE), for the scripts, analysis and text written for this research. Content from the crawl and the live web (`queries/`, `crawl/`, screenshots, page snippets) and third-party code (`vendor/`) belongs to its owners and isn't covered.
+
+<!-- If the repo has patches to a browser (changes to an engine's code), add the line: Patches are under the license of the code they modify. -->
