@@ -7,6 +7,7 @@
 #   are allowed anywhere (default queries/**/*,crawl/**/*; only files in git count, so gitignored
 #   downloads don't slow every commit). Bug links (Bugzilla and WebKit `show_bug.cgi?id=N`) are
 #   allowed too.
+# Without --staged, also fails while HEAD's LICENSE has an unfilled <placeholder>.
 # Exits 1 and lists matches if anything is found. Fix it in history (not just HEAD) before pushing.
 # With --staged, staged images are OCRed with ocr_check.py and checked for nudity with nsfw_check.py,
 # and review images or screenshots of pages in nsfw.csv are blocked (other images aren't scanned).
@@ -124,6 +125,11 @@ if '--staged' in sys.argv and images:
         if ocr_check.backend() and nsfw_check.backend():
             with open(cache, 'a') as c:
                 c.writelines(f'{shas[f]}-{key}\n' for f in files if f not in hit)
+if '--staged' not in sys.argv:
+    placeholder = re.search(r'<[^<>\n]+>', run('git', 'show', 'HEAD:LICENSE'))
+    if placeholder:
+        print(f'LICENSE: unfilled placeholder {placeholder.group()!r}')
+        found += 1
 if not os.path.exists('.publish-terms'):
     print('no .publish-terms: add the tester\'s public IP, city, region, country name and demonym')
     found += 1
