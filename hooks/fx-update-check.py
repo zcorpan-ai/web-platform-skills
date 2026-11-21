@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # PreToolUse hook: block commands that launch Firefox through WebDriver
-# (`./wpt run ... firefox`, geckodriver, or a Python script using Selenium)
+# (`./wpt run ... firefox`, geckodriver, or a Python script using Selenium or
+# starting geckodriver)
 # while a Firefox update is staged. A fresh profile would otherwise spawn
 # org.mozilla.updater, which needs authorization and hangs on a password prompt.
 import glob
@@ -117,8 +118,10 @@ def launches_firefox():
         return True
     if re.search(r"(?:^|[;&|(]\s*)(?:\S*/)?geckodriver\b", command):
         return True
+    # A script that starts geckodriver itself names it in a string or reads $GECKODRIVER.
     return any(
-        re.search(r"\bselenium\b", source) and re.search(r"firefox", source, re.I)
+        (re.search(r"\bselenium\b", source) and re.search(r"firefox", source, re.I))
+        or re.search(r"[\"'](?:[^\"'\n]*/)?geckodriver[\"']|\bGECKODRIVER\b", source)
         for source in python_sources()
     )
 
