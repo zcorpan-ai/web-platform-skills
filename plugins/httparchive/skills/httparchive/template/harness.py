@@ -1,8 +1,8 @@
 # Shared by compare.py and recheck.py: launches the before/after browsers and visits a page the
 # way the HTTP Archive crawl does (desktop 1366x768; mobile 360x640, DPR 3, mobile UA, touch).
-import asyncio, difflib, functools, http.server, os, re, shutil, socket, tempfile, threading
+import asyncio, difflib, functools, http.server, os, re, shutil, socket, tempfile, threading, urllib.parse
 from PIL import Image, ImageChops
-import change
+import change, dns_check
 
 MEASURE_JS = """
 () => ({
@@ -103,6 +103,12 @@ async def measure(frame):
 
 
 async def visit(browser, url, client, setup, shot=None, wait=3000, full_page=True):
+    host = urllib.parse.urlsplit(url).hostname
+    malware = await asyncio.to_thread(dns_check.blocked, host, 'security') if host else False
+    if malware:
+        return {'error': 'malware DNS block; not loaded', 'pageErrors': [], 'console': []}
+    if malware is None:
+        print(f'malware DNS lookup failed for {host}; loading anyway', flush=True)
     mobile = client == 'mobile'
     major = browser.version.split('.')[0]
     ctx = await browser.new_context(
