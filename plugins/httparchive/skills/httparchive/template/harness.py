@@ -46,6 +46,12 @@ def scrub_record(rec):
     return rec
 
 
+# Live runs load arbitrary crawled pages: keep Chrome's sandbox on (Playwright adds --no-sandbox unless
+# chromium_sandbox=True), and drop Playwright's --disable-background-networking (stops Safe Browsing
+# list updates) and --disable-component-update (stops security components such as CRLSets).
+SAFE = {'chromium_sandbox': True, 'ignore_default_args': ['--disable-background-networking', '--disable-component-update']}
+
+
 class ExtensionBrowser:
     """Stands in for a Browser when a setup loads an extension: each new_context() launches a fresh
     persistent profile (extensions don't run in Playwright's default contexts) and loads the
@@ -63,7 +69,8 @@ class ExtensionBrowser:
         s.close()
         self.dirs.append(tempfile.mkdtemp(prefix='ext-profile-'))
         ctx = await self.p.chromium.launch_persistent_context(
-            self.dirs[-1], executable_path=self.executable, ignore_default_args=['--disable-extensions'],
+            self.dirs[-1], executable_path=self.executable, chromium_sandbox=True,
+            ignore_default_args=SAFE['ignore_default_args'] + ['--disable-extensions'],
             args=self.args + ['--enable-unsafe-extension-debugging', f'--remote-debugging-port={port}'], **kwargs)
         cdp = await self.p.chromium.connect_over_cdp(f'http://127.0.0.1:{port}')
         await (await cdp.new_browser_cdp_session()).send('Extensions.loadUnpacked', {'path': self.extension})
@@ -77,7 +84,9 @@ class ExtensionBrowser:
 async def launch(p, executable, setup):
     args = change.BEFORE_ARGS if setup == 'before' else change.AFTER_ARGS
     extension = change.BEFORE_EXTENSION if setup == 'before' else change.AFTER_EXTENSION
-    browser = await p.chromium.launch(executable_path=executable, args=args)
+    if any(a.startswith(('--no-sandbox', '--disable-background-networking', '--safebrowsing-disable')) for a in args):
+        raise SystemExit('refusing to load live pages without the sandbox or Safe Browsing: ' + ' '.join(args))
+    browser = await p.chromium.launch(executable_path=executable, args=args, **SAFE)
     if not extension:
         return browser
     version = browser.version
