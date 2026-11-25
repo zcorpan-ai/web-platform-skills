@@ -1,5 +1,6 @@
 # Loads each sampled page before (A, then A2 for page noise) and after (B) the change, and appends
-# one JSON line per page to <out-dir>/results.jsonl. Pages already there are skipped, so rerun to resume.
+# one JSON line per page to <out-dir>/results.jsonl. Odd-numbered pages load B before A2, so B isn't
+# always the last (rate-limited, cached) load; `order` records which. Pages already there are skipped, so rerun to resume.
 # Usage: compare.py <chrome> <sample.jsonl> <out-dir> [<after-chrome>] [--concurrency N]
 # Give <after-chrome> to compare a build that implements the change against an unmodified build.
 import argparse, asyncio, json, os, sys
@@ -46,6 +47,7 @@ async def main():
     rows = [json.loads(l) for l in open(args.sample)]
     async with async_playwright() as p:
         exes = {'before': args.chrome, 'after': args.after_chrome or args.chrome}
+        # The first launch waits minutes for Safe Browsing lists; later ones reuse them.
         browsers = {s: await harness.launch(p, exe, s) for s, exe in exes.items()}
         print('before', browsers['before'].version, 'after', browsers['after'].version, flush=True)
         await sanity(browsers['before'], browsers['after'])
@@ -79,7 +81,9 @@ async def main():
                 return
             async with sem:
                 visits = {}
-                for tag, setup in (('A', 'before'), ('A2', 'before'), ('B', 'after')):
+                order = ['A', 'B', 'A2'] if idx % 2 else ['A', 'A2', 'B']
+                for tag in order:
+                    setup = 'after' if tag == 'B' else 'before'
                     shot = f"{args.out_dir}/shots/{idx}-{tag}.png"
                     br = browsers[setup]
                     rec = await harness.guarded(harness.visit(br, r['page'], r['client'], setup, shot))
@@ -89,7 +93,7 @@ async def main():
                     if timeouts[setup] >= 3 or (hasattr(br, 'is_connected') and not br.is_connected()):
                         await relaunch(setup, br)
             a, a2, b = visits['A'], visits['A2'], visits['B']
-            res = {'idx': idx, **r, **visits,
+            res = {'idx': idx, **r, 'order': ''.join(order), **visits,
                    'textRatioAA2': harness.text_ratio(a, a2), 'textRatioAB': harness.text_ratio(a, b),
                    'pixAA2': harness.pixel_diff(a.get('shot'), a2.get('shot')),
                    'pixAB': harness.pixel_diff(a.get('shot'), b.get('shot'))}
