@@ -5,18 +5,32 @@
 
 Proposed change: <what changes, in one or two sentences; which cases differ and which don't>.
 
+## Options
+
+<!-- Only with more than one option or variant: a small table, one row each, with its rule and
+     what it does to example inputs; where superseded options came from. One sentence on the
+     runs: A and A2 unchanged (A2 measures page noise), B with the option applied. -->
+
 ## Summary
 
-<!-- Real cases, not argument structure. Typically: exposure (pages using the feature, % of the
-     denominator); sample results by rating; extrapolated broken/worse with the denominator;
-     what's behind broken and worse (sites, libraries, patterns, and fixes shipped upstream);
-     how the field rate (use counters) compares with the crawl rate; anything the crawl can't size. -->
+<!-- For a reader who decides on shipping and reads only this far. Per option: what shipping it
+     would break (seen in the sample, found only by code review, unknown), on what share of all
+     pages (and of pages using the feature, where telling); what's behind it (sites, libraries,
+     patterns, fixes shipped upstream); how the field rate (use counters) compares. Real cases,
+     not argument structure. -->
+
+## How much the data can tell
+
+<!-- Sample design and how its size was set; what the bounds support; what the crawl and method
+     can't see (pages the crawl doesn't visit, interaction, logged-in state, special cases in the
+     change, other engines); a use counter that would close the gap. -->
 
 ## Scope
 
-<!-- So a new context can resume the run: crawl date, clients and denominator, samples and
-     strata, setups, budget, stopping rule. A few bullets. State the scope itself; don't mention
-     the kickoff or when it was agreed. -->
+<!-- So a new context can resume the run: crawl date, clients and denominator, who decides,
+     samples and strata, setups, budget, stopping rule, and a line of why for each setup, test
+     value and stratum a reader could question. A few bullets. State the scope itself; don't
+     mention the kickoff or when it was agreed. -->
 
 ## What breaks and why
 
@@ -68,11 +82,6 @@ What's behind the ratings:
 <!-- If the sample has few or no pages in the top rank buckets, run every top-ranked hit through
      the same steps (out-top<N>/) and report the results here. Otherwise delete this section. -->
 
-## Not covered
-
-<!-- What the crawl and this method can't see: pages the crawl doesn't visit, interaction,
-     logged-in state, special cases in the change, other engines. -->
-
 ## Query bytes
 
 All on the <crawl date> crawl, run on <date>:
@@ -92,7 +101,7 @@ python3 -m venv .venv && .venv/bin/pip install playwright pillow nudenet pyobjc-
 .venv/bin/python nsfw_check.py out
 .venv/bin/python analyze.py out
 # review out/review/*.png by hand and fill in the empty ratings in out/review.csv
-python3 extrapolate.py out/review.csv sample.jsonl > out/summary.md
+python3 extrapolate.py out/review.csv sample.jsonl <client's total pages> > out/summary.md
 .venv/bin/python recheck.py "$CHROME" <url> <desktop|mobile> <out.png>
 ```
 
