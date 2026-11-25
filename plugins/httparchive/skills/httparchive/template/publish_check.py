@@ -54,6 +54,7 @@ crawl_globs = next((a[8:] for a in sys.argv[1:] if a.startswith('--crawl=')), 'q
 in_git = set(run('git', 'ls-files').splitlines())
 crawl_files = {f for g in crawl_globs for f in glob.glob(g, recursive=True) if f in in_git}
 allowed = set()
+crawl_text = ''.join(open(path, errors='replace').read() for path in crawl_files)
 # Bug tracker links carry only a bug number in the query string.
 bug_link = re.compile(r'https://(?:bugzilla\.mozilla\.org|bugs\.webkit\.org)/show_bug\.cgi\?id=\d+(?:#c?\d+)?[).,;:!\]]*')
 for path in crawl_files:
@@ -83,7 +84,9 @@ for label, path, sha in blobs:
         hits = [h for h in pat.findall(text) if h not in allowed and not bug_link.fullmatch(h)]
         if hits:
             found += 1
-            print(f'{label} {path}: {name} ({len(hits)}): {hits[0][:80]!r}')
+            hint = ' (also in crawl data: if from a sample page URL, key the output by sample idx)' \
+                if not crawl and hits[0] in crawl_text else ''
+            print(f'{label} {path}: {name} ({len(hits)}): {hits[0][:80]!r}{hint}')
 if '--staged' in sys.argv and images:
     import nsfw_check, ocr_check
     cache = run('git', 'rev-parse', '--git-path', 'publish-check-clean')

@@ -11,3 +11,5 @@ skill-local.diff
 # Live run status for the user (SKILL.md, Kickoff)
 status.html
 .DS_Store
+# Blocklisted hosts for dns_check.py (SKILL.md, Live comparison)
+security/

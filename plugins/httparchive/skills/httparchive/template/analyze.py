@@ -28,10 +28,15 @@ def auto(r):
     return '', 'differs; needs review'
 
 
+# Per-load IDs: blob: URLs, UUIDs, and hex tokens (with a digit, so words like "added" stay).
+IDS = re.compile(r'blob:\S+|\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b|\b(?=[a-f]*\d)[0-9a-f]{8,}\b', re.I)
+
+
 def messages(v):
-    # Numbers vary between loads (timestamps, IDs, line numbers in minified code).
+    # IDs and numbers vary between loads (timestamps, line numbers in minified code); unmasked, an
+    # error in every visit looks new in B.
     ignore = re.compile(change.IGNORE_MESSAGES) if change.IGNORE_MESSAGES else None
-    return {re.sub(r'\d+', 'N', e)[:150]: e for e in v.get('pageErrors', []) + v.get('console', [])
+    return {re.sub(r'\d+', 'N', IDS.sub('ID', e))[:150]: e for e in v.get('pageErrors', []) + v.get('console', [])
             if not (ignore and ignore.search(e))}
 
 
