@@ -47,3 +47,4 @@ description: Use when writing, running, or debugging web-platform-tests (wpt), o
 - Don't listen for `load` on a parser-inserted iframe/img from a later script; it may already have fired. Await the window `load` event instead (such elements delay it).
 - Don't rely on named access on the global (`iframe` for `id=iframe`); use `document.querySelector()`/`getElementById()`.
 - Don't add code comments unless really necessary for understanding.
+- Opening a wpt PR together with a spec PR: follow `file-issue`'s "Items that link to each other".

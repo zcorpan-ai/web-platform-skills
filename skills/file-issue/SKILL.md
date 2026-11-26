@@ -1,6 +1,6 @@
 ---
 name: file-issue
-description: Use when drafting or filing a spec issue (WHATWG, W3C, or other GitHub-hosted specs) or a browser implementation bug (Chromium, WebKit, Mozilla Bugzilla), including pre-filling the new-issue form, or writing a WHATWG spec PR's description and checklist. Triggers on "file an issue", "spec issue", "file a bug", "report this to Chromium/WebKit/Gecko", "draft an issue", "open the PR", "edit the PR".
+description: Use when drafting or filing a spec issue (WHATWG, W3C, or other GitHub-hosted specs) or a browser implementation bug (Chromium, WebKit, Mozilla Bugzilla), including pre-filling the new-issue form, or writing a WHATWG spec PR's description and checklist, or filing several issues or PRs that link to each other (e.g. a spec PR and its wpt PR). Triggers on "file an issue", "spec issue", "file a bug", "report this to Chromium/WebKit/Gecko", "draft an issue", "open the PR", "edit the PR".
 ---
 
 # file-issue
@@ -29,6 +29,11 @@ description: Use when drafting or filing a spec issue (WHATWG, W3C, or other Git
 - Implementation bugs: link a bug for each of those engines that fails the tests, and mark the ones that pass as already matching. Don't write "N/A" until every engine passes. If an engine is known to diverge but the tests don't show it, improve the tests first.
 - Skip the spec issue only for an obvious bug fix that implementations agree on; if they disagree, file an issue first.
 - Renaming a `<dfn>`: keep the old anchor too. Removing one: point the old anchor at a note saying what was there and why it's gone. A removal needs a test that the feature is unsupported.
+
+## Items that link to each other
+
+- When filing directly, fill in cross-links before filing rather than editing afterwards. Right before filing the first item, get the newest number in the second's repo (`gh api "repos/<org>/<repo>/issues?state=all&per_page=1" -q '.[0].number'`; issues and PRs share numbers) and add 1 (2 if both go in the same repo). File the busier repo first, since only the second number is guessed. Afterwards, check each link points at the intended item; edit if not.
+- When the user files via `--web` or a pre-filled form instead, don't guess: pre-fill the second once the first exists, then edit the first.
 
 ## Pre-filling forms
 
