@@ -15,7 +15,10 @@ Agent skills for web platform spec and wpt work, also packaged as Claude Code pl
 - `httparchive-qa` skill: QA runs of an implementation (a browser's, a flag or pref, a build, a polyfill or extension) against other implementations on the pages that use the feature, with one fileable finding per cause. It loads only when asked for by name ("httparchive qa for &lt;feature>").
 - `page-reviewer` agent (Claude Code only): a read-only reviewer (no shell or network) that both skills hand crawl and page material to, so instructions planted in pages can't run commands through it. Elsewhere, the skills use a fresh agent limited to read-only file tools.
 
-See [docs/httparchive.md](docs/httparchive.md) for how they work and where the data comes from.
+See [docs/httparchive.md](docs/httparchive.md) for how they work and where the data comes from,
+[docs/httparchive-security.md](docs/httparchive-security.md) for the threat model and a recommended
+environment, and [docs/httparchive-privacy.md](docs/httparchive-privacy.md) for what a published
+research repo can reveal.
 
 `agent-tooling` (from [zcorpan/agent-tooling](https://github.com/zcorpan/agent-tooling)):
 

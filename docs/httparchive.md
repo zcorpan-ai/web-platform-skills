@@ -157,6 +157,9 @@ QA runs made with the `httparchive-qa` skill:
   and Safari can't be emulated the same way: the agent can approximate Firefox on desktop with
   prefs, or drive Firefox for Android on a device or emulator; for WebKit it uses Safari in the iOS
   Simulator, which needs Xcode with an iOS runtime installed (release Safari, not TP).
+- Ideally, an environment that limits what a run can reach: a VM, a Google Cloud project and
+  service account just for runs with a daily query quota, and no GitHub write access (see
+  [Recommended environment](httparchive-security.md#recommended-environment)).
 - Optionally, disk space for Common Crawl WARCs (about 1 GB each; more than 12 only for rare patterns).
 
 ## Limits
@@ -172,7 +175,7 @@ QA runs made with the `httparchive-qa` skill:
   defaults, and sites can tell emulation apart. Safari TP runs one page at a time, so Safari runs
   take longest.
 - Results come from a sample: 0 broken out of 150 doesn't mean 0 on the web.
-- Pages can contain text aimed at AI agents. The agent treats crawl and page content as data, not
-  instructions, hands it to reviewer agents that can only read files, and keeps pushes, posts, and
-  billed queries beyond your budget gated on you, but that isn't a guarantee.
+- Pages can contain text aimed at AI agents, and live pages can be malicious. The agent's defenses
+  aren't guarantees; see [security](httparchive-security.md) for what is enforced and a recommended
+  environment, and [privacy](httparchive-privacy.md) for what a published repo can reveal.
 - Agents make mistakes. Look at the repo and the review images before relying on the conclusion.
