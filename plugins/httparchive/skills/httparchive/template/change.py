@@ -5,6 +5,10 @@
 BEFORE_ARGS = []
 AFTER_ARGS = []
 
+# Firefox prefs for that setup (harness_firefox.py), e.g. {'dom.foo.enabled': False}.
+BEFORE_PREFS = {}
+AFTER_PREFS = {}
+
 # Unpacked extension directory to load in that setup, e.g. a polyfill extension in AFTER with the
 # native feature off in AFTER_ARGS. Each visit then gets a fresh profile.
 BEFORE_EXTENSION = None
