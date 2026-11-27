@@ -50,7 +50,8 @@ can edit, skip or replace any of them. Only controls outside the agent's reach a
 | `page-reviewer` having only Read, Glob and Grep | Claude Code | No, but its report goes back to the main agent |
 | Claude Code permission rules, sandbox, managed settings | Claude Code, the OS | Not if set where the session can't write (managed settings) |
 | Auto mode's classifier | Claude Code | No, but it's a per-action check, not a boundary |
-| You running the push and comment commands yourself | The skill's text | Yes, if the session has push credentials |
+| Asking before creating repos, pushing and posting | The skill's text | Yes |
+| Which repos the session can create or push to | GitHub token permissions | No |
 | Everything else in SKILL.md (untrusted content rules, budget, scope) | The agent | Yes |
 
 The skill's own files are writable too when installed from a git checkout or the plugin cache.
@@ -170,9 +171,9 @@ from commands the agent gives you:
   `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly` and `disableBypassPermissionsMode`, so
   the session can't loosen them. Change them by a reviewed PR to a config repo, installed with
   `sudo` after showing the diff.
-- **Before publishing**, run `publish_check.py` yourself from a copy the session couldn't write
-  (e.g. the installed plugin's `template/`, if it's outside the session's reach), and diff the
-  repo's `publish_check.py`, `*_check.py` and `hooks/` against the template.
+- **Before publishing**, the agent runs the installed plugin's `template/publish_check.py`, which
+  also compares the repo's checks and hook with the template's. Where the session could have
+  changed the plugin too, run it yourself from a copy it couldn't write.
 
 At kickoff the skill runs `template/env_check.py`, which warns (but doesn't stop the run) when SSH to
 GitHub works, `gh` uses a classic token, a gcloud account isn't a service account, or the plugin runs

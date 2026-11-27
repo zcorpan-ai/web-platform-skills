@@ -36,7 +36,9 @@ that, and keeps your own IP out of the output too.
 ## Other people's data
 
 Crawl data and screenshots can hold personal data of a site's users and staff: names, email
-addresses, comments, photos. Publish only what a finding needs. The skill quotes page strings only
+addresses, faces, account names, comments. The agent publishes it only where a finding needs it,
+crops or redacts it otherwise, and never publishes anything from pages behind a login or not meant
+to be public. The skill quotes page strings only
 when the finding needs them, in code spans, never as links or @mentions, so they can't ping or send
 readers anywhere. Link evidence to committed review images rather than the live site.
 
@@ -45,10 +47,17 @@ or the live web, or third-party code; the README's License section says so.
 
 ## Publishing is permanent
 
-Before every push the agent runs `publish_check.py` over every blob in history, not only the latest
-commit, and rewrites history to fix hits. Once pushed, force-pushing isn't enough: GitHub serves old
-commits by SHA until the repo is deleted and recreated, and the data may already be copied. You run
-the commands that create the repo, push, and post; the agent only gives them to you.
+Before every push the agent runs `publish_check.py` from the installed skill's `template/`, not the
+repo's copy, over every blob in history, not only the latest commit, and rewrites history to fix
+hits. The same run checks that the repo's `publish_check.py`, `*_check.py` and `hooks/pre-commit`
+match the template's and that the hook is on, and the agent shows you any difference. Once pushed,
+force-pushing isn't enough: GitHub serves old commits by SHA until the repo is deleted and recreated,
+and the data may already be copied.
+
+The agent creates the repo, pushes, and posts only when you ask, and shows you the comment first.
+With a token that can't create repos (as recommended in
+[httparchive-security.md](httparchive-security.md#recommended-environment)), it gives you the
+`gh repo create` command to run instead.
 
 ## Adult and illegal content
 
@@ -64,8 +73,9 @@ Limits: NudeNet catches exposed nudity, not other adult content, and less in dow
 also flags nude paintings. Violent, gory or hateful content isn't detected at all. Look at the
 images you publish.
 
-If a run surfaces illegal content, such as child sexual abuse material: stop, don't keep, commit or
-send it to an agent, report it to a hotline ([NCMEC](https://report.cybertip.org/) in the US,
+If a run surfaces illegal content, such as child sexual abuse material, the agent stops, deletes
+every copy and keeps only the URL, which it gives you without describing the content. Don't keep,
+commit or send it to an agent; report it to a hotline ([NCMEC](https://report.cybertip.org/) in the US,
 [IWF](https://report.iwf.org.uk/) in the UK, or another [INHOPE](https://www.inhope.org/) member),
 and follow your employer's process.
 

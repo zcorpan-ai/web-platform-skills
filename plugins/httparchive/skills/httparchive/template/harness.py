@@ -35,8 +35,8 @@ def scrub(s):
 
 
 def clip(s, n):
-    """Cut s to about n characters at a space: a cut-off host or token can read as another (a host cut
-    to `facebook.ne` looks country-specific)."""
+    """Cut s to about n characters at a space: a cut-off host or token can read as another (a .net host
+    cut after its "ne" looks country-specific)."""
     return s if len(s) <= n else (s[:n].rsplit(' ', 1)[0] if ' ' in s[:n] else s[:n]) + ' …'
 
 
