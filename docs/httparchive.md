@@ -2,9 +2,11 @@
 
 The `httparchive` skill helps an AI agent answer "how many pages use this?" and "is this spec or
 browser change web compatible?", and the `httparchive-qa` skill "does this implementation match the
-others?" It finds the pages in public crawl data (Common Crawl for free, HTTP Archive's billed
-BigQuery tables for counts and popularity), loads a sample in a real browser in each setup, reviews
-the differences, and writes it all up in a reproducible git repo you can publish.
+others?" It finds the pages in public crawl data: Common Crawl is free but only has HTML, while HTTP
+Archive's billed BigQuery tables also have each page's scripts and CSS, Chrome use counters that
+pick out the few pages among millions that hit a code path, custom metrics, and popularity ranks. It
+then loads a sample in a real browser in each setup, reviews the differences, and writes it all up
+in a reproducible git repo you can publish.
 
 ## Where the data comes from
 
@@ -32,7 +34,8 @@ pages. Firefox has its own counters too.
 
 **Common Crawl.** [Common Crawl](https://commoncrawl.org/) is a nonprofit that crawls billions of
 URLs (not only home pages) and publishes the raw responses as WARC files anyone can download, free
-and without an account. It has no popularity ranks or use counters, only the responses. The skill
+and without an account. It has no popularity ranks or use counters, only the responses, and it
+doesn't fetch the scripts and CSS a page loads, so it can't find patterns that live there. The skill
 uses a random sample of WARCs (12 files, about 12 GB and 250k pages) to try out searches for free
 before spending money on HTTP Archive. It asks before downloading the first sample or extending it
 for a rare pattern, and offers to delete the extension when done.
