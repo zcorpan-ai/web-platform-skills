@@ -43,7 +43,8 @@ can edit, skip or replace any of them. Only controls outside the agent's reach a
 | Secret scanning push protection, branch protection | GitHub | No (unless the token can change repo settings) |
 | The browser's own sandbox, once launched with it | The browser and OS | It chooses the launch arguments |
 | `harness.py` refusing `--no-sandbox` and Safe Browsing switches, waiting for Safe Browsing, malware DNS, local blocklist | Template scripts | Yes |
-| The same for Firefox and Safari | Harness the agent writes from the skill's text | Yes |
+| The same for Firefox | `harness_firefox.py`, `smoke_check.py` | Yes |
+| The same for Safari | Harness the agent writes from the skill's text | Yes |
 | Scrubbing live-load output (`scrub()`, `scrub_record()`) | Template scripts | Yes |
 | Pre-commit publish check, OCR and nudity checks | Git hook running `publish_check.py` | Yes (`--no-verify`, `core.hooksPath`, editing the scripts or `.publish-terms`) |
 | `page-reviewer` having only Read, Glob and Grep | Claude Code | No, but its report goes back to the main agent |
@@ -81,19 +82,24 @@ conclusion.
 
 ## Browsers and malicious sites
 
-Live runs load pages the agent has never seen. The template's harness:
+Live runs load pages the agent has never seen. The template's harnesses (`harness.py` for Chrome,
+`harness_firefox.py` for Firefox):
 
-- Launches Chrome with its sandbox (Playwright adds `--no-sandbox` otherwise) and refuses arguments
-  that turn it or Safe Browsing off; for Firefox the skill asks for the Safe Browsing prefs that
-  Marionette turns off, and never to lower `security.sandbox.*`.
-- Keeps Safe Browsing and security component updates on, and waits until Google's Safe Browsing test
-  page is blocked before loading any live page.
-- Sends all of the browser's DNS through Cloudflare's malware-blocking resolver with no fallback, so
+- Launch Chrome with its sandbox (Playwright adds `--no-sandbox` otherwise) and refuse arguments
+  that turn it or Safe Browsing off; turn Firefox's Safe Browsing back on (Marionette turns it off)
+  and refuse prefs or environment variables that lower `security.sandbox.*`.
+- Keep Safe Browsing and security component updates on, and wait until a Safe Browsing test page
+  is blocked (Google's in Chrome; Mozilla's plus a Google list update in Firefox) before loading any
+  live page.
+- Send all of the browser's DNS through Cloudflare's malware-blocking resolver with no fallback, so
   subresources, frames and redirect targets on its list fail too, and makes hosts in the gitignored
   `security/*.txt` unreachable (a list from your security team, or a hosts file like URLhaus's).
-- Checks each page's host before loading it, and skips the page if the lookup fails.
-- Smoke-tests the setup: no browser process with `--no-sandbox`, and the malware test pages and a
-  listed host fail to load as a page and as a subresource.
+- Check each page's host before loading it, and skip the page if the lookup fails.
+- Run Firefox sessions in their own process group, killed with the browser on a visit's timeout,
+  keep downloads in the session's temporary directory, and never send crash reports.
+
+`smoke_check.py` tests the setup in the browser itself: no browser process with `--no-sandbox`, and
+the malware test pages and a listed host fail to load as a page and as a subresource.
 
 What that doesn't cover:
 
@@ -103,15 +109,15 @@ What that doesn't cover:
   reach. Up-to-date browsers get fixes first, but Canary and Nightly also carry new bugs, and local
   builds (debug, ASan, or without Google API keys and so without Safe Browsing, which makes the
   harness stop) differ from release.
-- Pages can crash the browser; the harness relaunches it. Crash reporters can send the URL with the
-  report.
+- Pages can crash the browser; the harness relaunches it. Chrome's crash reporter can send the URL
+  with the report, and so can a Firefox outside `harness_firefox.py`.
 - Pages can send requests to `localhost` and the LAN (local test servers, dev servers, routers),
   limited only by the browser's local network protections.
-- Pages can download files: Playwright accepts them into a temporary directory; a Firefox profile
-  saves them to its download directory unless the harness sets it.
+- Pages can download files, into a temporary directory that the harnesses remove.
 - Extensions under test run with extension privileges.
 - Browser MCP servers you've configured get none of the harness's protections, and put page text
-  straight into the agent's context.
+  straight into the agent's context; the skill says never to load sampled or crawled pages through
+  them.
 
 ## Recommended environment
 
