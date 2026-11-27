@@ -20,7 +20,7 @@ See [docs/httparchive.md](docs/httparchive.md) for how they work and where the d
 environment, and [docs/httparchive-privacy.md](docs/httparchive-privacy.md) for what a published
 research repo can reveal.
 
-`agent-tooling` (from [zcorpan/agent-tooling](https://github.com/zcorpan/agent-tooling)):
+`agent-tooling` (from [zcorpan-ai/agent-tooling](https://github.com/zcorpan-ai/agent-tooling)):
 
 - `build-tooling` skill: building and improving skills, plugins, and the scripts they drive. Skills here use its rules when offering a PR to improve themselves, but don't require it.
 
@@ -31,7 +31,7 @@ The `httparchive` skill used to be part of `web-platform-skills`; install the `h
 From Claude Code:
 
 ```
-/plugin marketplace add zcorpan/web-platform-skills
+/plugin marketplace add zcorpan-ai/web-platform-skills
 /plugin install web-platform-skills@web-platform-skills
 /plugin install httparchive@web-platform-skills
 /plugin install agent-tooling@web-platform-skills
@@ -42,17 +42,17 @@ Auto-update is off by default for this marketplace; to turn it on, open `/plugin
 Or clone and symlink them into your skills directory, where they load as `web-platform-skills@skills-dir` and `httparchive@skills-dir`:
 
 ```
-git clone https://github.com/zcorpan/web-platform-skills ~/git/zcorpan/web-platform-skills
-ln -s ~/git/zcorpan/web-platform-skills ~/.claude/skills/web-platform-skills
-ln -s ~/git/zcorpan/web-platform-skills/plugins/httparchive ~/.claude/skills/httparchive
+git clone https://github.com/zcorpan-ai/web-platform-skills ~/git/zcorpan-ai/web-platform-skills
+ln -s ~/git/zcorpan-ai/web-platform-skills ~/.claude/skills/web-platform-skills
+ln -s ~/git/zcorpan-ai/web-platform-skills/plugins/httparchive ~/.claude/skills/httparchive
 ```
 
 For Gemini CLI, link each skill from the clone (untested):
 
 ```
-gemini skills link ~/git/zcorpan/web-platform-skills/skills/wpt
-gemini skills link ~/git/zcorpan/web-platform-skills/skills/file-issue
-gemini skills link ~/git/zcorpan/web-platform-skills/skills/browser-source
-gemini skills link ~/git/zcorpan/web-platform-skills/plugins/httparchive/skills/httparchive
-gemini skills link ~/git/zcorpan/web-platform-skills/plugins/httparchive/skills/httparchive-qa
+gemini skills link ~/git/zcorpan-ai/web-platform-skills/skills/wpt
+gemini skills link ~/git/zcorpan-ai/web-platform-skills/skills/file-issue
+gemini skills link ~/git/zcorpan-ai/web-platform-skills/skills/browser-source
+gemini skills link ~/git/zcorpan-ai/web-platform-skills/plugins/httparchive/skills/httparchive
+gemini skills link ~/git/zcorpan-ai/web-platform-skills/plugins/httparchive/skills/httparchive-qa
 ```
