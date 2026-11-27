@@ -39,12 +39,11 @@ From Claude Code:
 
 Auto-update is off by default for this marketplace; to turn it on, open `/plugin`, go to Marketplaces, select `web-platform-skills`, and choose Enable auto-update.
 
-Or clone and symlink them into your skills directory, where they load as `web-platform-skills@skills-dir` and `httparchive@skills-dir`:
+To work on the skills, start Claude Code with the plugins from a clone. For that session, they replace the installed plugins of the same name, and `/reload-plugins` picks up edits:
 
 ```
 git clone https://github.com/zcorpan-ai/web-platform-skills ~/git/zcorpan-ai/web-platform-skills
-ln -s ~/git/zcorpan-ai/web-platform-skills ~/.claude/skills/web-platform-skills
-ln -s ~/git/zcorpan-ai/web-platform-skills/plugins/httparchive ~/.claude/skills/httparchive
+claude --plugin-dir ~/git/zcorpan-ai/web-platform-skills --plugin-dir ~/git/zcorpan-ai/web-platform-skills/plugins/httparchive
 ```
 
 For Gemini CLI, link each skill from the clone (untested):
