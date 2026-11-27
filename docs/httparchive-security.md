@@ -174,6 +174,10 @@ from commands the agent gives you:
   (e.g. the installed plugin's `template/`, if it's outside the session's reach), and diff the
   repo's `publish_check.py`, `*_check.py` and `hooks/` against the template.
 
+At kickoff the skill runs `template/env_check.py`, which warns (but doesn't stop the run) when SSH to
+GitHub works, `gh` uses a classic token, a gcloud account isn't a service account, or the plugin runs
+from a checkout the session can push from.
+
 Without a VM, use at least a separate OS user and a gcloud configuration holding only the service
 account (a separate `CLOUDSDK_CONFIG` directory). Give the session no GitHub token, or a
 fine-grained read-only one for public repositories in `GH_TOKEN`, and no SSH agent, and publish
