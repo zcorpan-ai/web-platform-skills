@@ -157,8 +157,8 @@ QA runs made with the `httparchive-qa` skill:
   and Safari can't be emulated the same way: the agent can approximate Firefox on desktop with
   prefs, or drive Firefox for Android on a device or emulator; for WebKit it uses Safari in the iOS
   Simulator, which needs Xcode with an iOS runtime installed (release Safari, not TP).
-- Ideally, an environment that limits what a run can reach: a VM, a Google Cloud project and
-  service account just for runs with a daily query quota, and no GitHub write access (see
+- Ideally, a VM for all agent work, holding only scoped credentials: per-owner fine-grained GitHub
+  tokens that can't push or merge upstream, and a service account with a daily query quota (see
   [Recommended environment](httparchive-security.md#recommended-environment)).
 - Optionally, disk space for Common Crawl WARCs (about 1 GB each; more than 12 only for rare patterns).
 

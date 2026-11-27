@@ -117,43 +117,70 @@ What that doesn't cover:
 
 An unrestricted session (your everyday OS account, auto mode, all your credentials) has far more
 reach than a run needs: an agent steered by page content could read and leak secrets, or push and
-post, and only the auto mode classifier, if it catches it, stands in the way. A run needs much less:
+post, and only the auto mode classifier, if it catches it, stands in the way. Do all agent work, not
+only these runs, in a VM that holds only scoped credentials, and do what needs more on the host,
+from commands the agent gives you:
 
-- **Isolation.** Run in a VM, or at least a separate OS user, holding only what the run needs: a
-  macOS VM for Safari TP, a Linux VM or container otherwise. This is the only boundary that contains
-  a browser escape or a fully steered agent. Claude Code's own docs recommend a VM or a
+- **The VM.** A macOS VM for Safari TP, a Linux VM otherwise. It's the only boundary that contains
+  a browser escape or a fully steered agent; Claude Code's own docs recommend a VM or a
   [devcontainer](https://code.claude.com/docs/en/devcontainer) for untrusted web content
   ([security](https://code.claude.com/docs/en/security),
-  [sandbox environments](https://code.claude.com/docs/en/sandbox-environments)). Give it no route to
-  your LAN, and route its traffic through a VPN or a cloud host if page operators shouldn't see your
-  IP address.
-- **Google Cloud.** A dedicated project for runs, and a service account with
-  `roles/bigquery.jobUser` on the project and `roles/bigquery.dataEditor` on one scratch dataset
-  (HTTP Archive's tables are public), plus `bigquery.jobs.list` (in `roles/bigquery.user`) for the
-  skill's actual-cost check. Set the BigQuery custom quotas "Query usage per day" and "Query usage
-  per day per user" on the project: they are the only hard cap on spend (budget alerts don't stop
-  queries), and they bound what a leaked key can spend too. Keep your personal and organization
-  accounts out of that gcloud configuration (a separate `CLOUDSDK_CONFIG` directory), or the agent
-  can switch accounts with `--account`.
-- **GitHub.** A run needs no write access: you create the repo, push, and post. Give the session no
-  GitHub token, or a fine-grained read-only one for public repositories in `GH_TOKEN`, and no SSH
-  agent. Publish from your normal shell. Protect `main` on repos you maintain, above all skills
-  others install.
-- **Claude Code.** Install the plugin from the marketplace rather than from a checkout you can push
-  from. Claude Code's built-in Bash [sandbox](https://code.claude.com/docs/en/sandboxing) doesn't fit
-  live runs: its network allowlist can't cover arbitrary sites, how browsers' own sandboxes behave
-  inside it on macOS isn't documented, and an `excludedCommands` exception runs the browser with
-  full access. [Permission rules](https://code.claude.com/docs/en/permissions) still help, enforced
-  by Claude Code: `Read` deny rules for `~/.ssh`, `~/.config/gh` and `~/.config/gcloud` (they also
-  block edits there, but reach Bash only for commands like `cat`, not a script that opens the file
-  itself), `Edit` deny rules for the research repo's `hooks/` and `*_check.py` and the plugin's
-  directory, and `permissions.blockWritesOutsideWorkingDirectories`. Put them in managed settings
+  [sandbox environments](https://code.claude.com/docs/en/sandbox-environments)).
+  - Give it no route to your LAN, and block incoming connections in the host's firewall: the VM
+    can otherwise reach services listening on the host through its gateway. Point its DNS at a
+    malware-blocking resolver (Cloudflare's `1.1.1.2`).
+  - Share host directories read-only, except one outbox the host only reads data from (drafts,
+    git bundles). Never open the VM's files with the host's own editor, git or other tools, which
+    can run code from them (git hooks, editor tasks and settings); use a separate editor instance
+    over SSH with no accounts or forwarding. Read commands from the VM before running them on the
+    host.
+  - Keep a clean image and reset the VM from it periodically and after a suspicious run: the agent
+    is the VM's OS user, so it can persist through dotfiles and launch agents.
+  - Route its traffic through a VPN or a cloud host if page operators shouldn't see your IP
+    address.
+- **GitHub.** Fine-grained tokens, one per resource owner, since a token covers only one (your
+  account or one org); a git credential helper and a `gh` wrapper pick the token by the repo's
+  owner. Use the fork model: Contents write only on your own account, so the agent pushes to your
+  forks and research repos; Contents read with Issues and Pull requests write on upstream orgs, so
+  it can open PRs and comment but not push or merge there. No Administration and no account
+  permissions, so it can't create repos or forks, change settings, or create gists; those, pushes
+  to upstream branches and merging stay on the host. Pull requests write still lets it submit
+  reviews as you. No SSH key in the VM. Install the plugin from the marketplace, not from a
+  checkout it can push from, and protect `main` on repos others install skills from.
+- **Google Cloud.** A service account per environment, in a project for runs, with
+  `roles/bigquery.jobUser` on the project and nothing else: it can run queries and list its own jobs
+  (the skill's actual-cost check), and HTTP Archive's tables are public. Scratch tables for
+  `response_body` work need `roles/bigquery.dataEditor` on one dataset as well. Set the BigQuery
+  custom quotas "Query usage per day" and "Query usage per day per user": they are the only hard
+  cap on spend (budget alerts don't stop queries), and they bound what a leaked key can spend too.
+  Keep personal and organization accounts out of the VM, or the agent can switch to them with
+  `--account`.
+- **Bugzilla and Phabricator.** Their API keys and tokens act as the full account, confidential
+  bugs included, so keep them on the host. The VM reads bugs anonymously and drafts comments; the
+  host applies them. For Phabricator, the VM pushes a branch to your fork and the host fetches it
+  and submits.
+- **Claude Code.** Put permission rules in managed settings, root-owned
   (`/Library/Application Support/ClaudeCode/managed-settings.json` on macOS), with
-  `disableBypassPermissionsMode`, so the session can't loosen them. Treat them as speed bumps, not
-  a boundary. Auto mode "does not guarantee safety", per its docs.
+  `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly` and `disableBypassPermissionsMode`, so
+  the session can't loosen them. Change them by a reviewed PR to a config repo, installed with
+  `sudo` after showing the diff.
 - **Before publishing**, run `publish_check.py` yourself from a copy the session couldn't write
   (e.g. the installed plugin's `template/`, if it's outside the session's reach), and diff the
   repo's `publish_check.py`, `*_check.py` and `hooks/` against the template.
+
+Without a VM, use at least a separate OS user and a gcloud configuration holding only the service
+account (a separate `CLOUDSDK_CONFIG` directory). Give the session no GitHub token, or a
+fine-grained read-only one for public repositories in `GH_TOKEN`, and no SSH agent, and publish
+from your normal shell. Claude Code's built-in Bash
+[sandbox](https://code.claude.com/docs/en/sandboxing) doesn't fit live runs: its network allowlist
+can't cover arbitrary sites, how browsers' own sandboxes behave inside it on macOS isn't documented,
+and an `excludedCommands` exception runs the browser with full access.
+[Permission rules](https://code.claude.com/docs/en/permissions) in managed settings still help:
+`Read` deny rules for `~/.ssh`, `~/.config/gh` and `~/.config/gcloud` (they also block edits there,
+but reach Bash only for commands like `cat`, not a script that opens the file itself), `Edit` deny
+rules for the research repo's `hooks/` and `*_check.py` and the plugin's directory, and
+`permissions.blockWritesOutsideWorkingDirectories`. Treat them as speed bumps, not a boundary. Auto
+mode "does not guarantee safety", per its docs.
 
 ## Limitations
 
