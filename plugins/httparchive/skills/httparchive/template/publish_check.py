@@ -8,6 +8,8 @@
 #   downloads don't slow every commit). Bug links (Bugzilla and WebKit `show_bug.cgi?id=N`) are
 #   allowed too.
 # Without --staged, also fails while HEAD's LICENSE has an unfilled <placeholder>.
+# Run from the skill's template/ (not the repo's copy), it also checks that the repo's publish_check.py,
+# *_check.py and hooks/pre-commit match the template's and that core.hooksPath is hooks.
 # Exits 1 and lists matches if anything is found. Fix it in history (not just HEAD) before pushing.
 # With --staged, staged images are OCRed with ocr_check.py and checked for nudity with nsfw_check.py,
 # and review images or screenshots of pages in nsfw.csv are blocked (other images aren't scanned).
@@ -133,6 +135,23 @@ if '--staged' not in sys.argv:
     if placeholder:
         print(f'LICENSE: unfilled placeholder {placeholder.group()!r}')
         found += 1
+here = os.path.dirname(os.path.abspath(__file__))
+if '--staged' not in sys.argv and os.path.realpath(here) != os.path.realpath('.'):
+    # Run from the skill's template/: the repo's own checks and hook must match it, or a run could
+    # have weakened them.
+    if run('git', 'config', 'core.hooksPath') != 'hooks':
+        print('core.hooksPath is not hooks: the pre-commit check is off')
+        found += 1
+    hook = ['publish_check.py', 'ocr_check.py', 'nsfw_check.py', 'hooks/pre-commit']  # what the hook runs
+    for f in hook + sorted({os.path.basename(g) for g in glob.glob(os.path.join(here, '*_check.py'))} - set(hook)):
+        mine = os.path.join(here, f)
+        if not os.path.exists(f):
+            if f in hook:
+                print(f'{f}: missing; copy it from {mine}')
+                found += 1
+        elif open(f, 'rb').read() != open(mine, 'rb').read():
+            print(f'{f}: differs from {mine}')
+            found += 1
 if not os.path.exists('.publish-terms'):
     print('no .publish-terms: add the tester\'s public IP, city, region, country name and demonym')
     found += 1

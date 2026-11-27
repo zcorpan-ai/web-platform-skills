@@ -62,8 +62,9 @@ for a rare pattern, and offers to delete the extension when done.
    images, and a README. A pre-commit hook checks that nothing that identifies you (your IP or
    location, which live pages can show) gets committed, and no images of adult pages: those are
    marked "nsfw" and get a minimal repro test instead.
-8. The agent drafts a comment for the spec issue or bug. When you're happy with it, it gives you the
-   commands to create the GitHub repo and post the comment, and you run them.
+8. The agent drafts a comment for the spec issue or bug. When you're happy with it and ask, it
+   creates the GitHub repo, pushes and posts the comment, or gives you the command to create the
+   repo if its token can't.
    If the run hit something the skill got wrong or should have said, the agent then offers a PR
    to improve the skill with the general lessons. It doesn't for research you keep private.
 

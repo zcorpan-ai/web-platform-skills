@@ -1,6 +1,5 @@
 # Keeps live runs off malware hosts, and does Cloudflare DoH blocklist lookups for nsfw_check.py
-# (adult hosts). 'security' (1.1.1.2) blocks malware; 'family' (1.1.1.3) blocks malware and adult
-# content.
+# (adult hosts). 'security' blocks malware; 'family' blocks malware and adult content.
 # - Every request: chrome_local_state() (harness.launch() writes it) and firefox_prefs() send all of
 #   the browser's DNS to the security resolver, with no fallback, so subresources, frames, workers
 #   and redirect targets on its list fail to load too.
